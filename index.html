@@ -1,0 +1,2122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识分享平台 v10 (带文件夹分类)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <!-- Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36CFC9',
+                        neutral: '#F5F7FA',
+                        dark: '#1D2129',
+                        qq: '#12B7F5',
+                        warning: '#FF7D00',
+                        danger: '#F53F3F'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-hover {
+                @apply transition-all duration-300 hover:shadow-lg hover:-translate-y-1;
+            }
+            .btn-primary {
+                @apply bg-primary text-white px-4 py-2 rounded-md transition-all duration-300 hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50;
+            }
+            .btn-secondary {
+                @apply bg-white text-primary border border-primary px-4 py-2 rounded-md transition-all duration-300 hover:bg-primary/5 focus:outline-none focus:ring-2 focus:ring-primary/50;
+            }
+            .btn-danger {
+                @apply bg-red-500 text-white px-4 py-2 rounded-md transition-all duration-300 hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400;
+            }
+            .input-field {
+                @apply w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all;
+            }
+            .note-card {
+                @apply flex items-start p-4 rounded-lg mb-4 border-l-4 border-warning bg-warning/5;
+            }
+            .warning-card {
+                @apply flex items-start p-4 rounded-lg mb-4 border-l-4 border-danger bg-danger/5;
+            }
+            .feature-card {
+                @apply bg-white rounded-lg shadow-sm p-6 transition-all duration-300 hover:shadow-md;
+            }
+            .folder-hover {
+                @apply transition-all duration-300 hover:bg-primary/5 cursor-pointer;
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-neutral text-dark min-h-screen">
+    <!-- 导航栏 -->
+    <header class="bg-white shadow-sm sticky top-0 z-50 transition-all duration-300">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-folder-open text-primary text-2xl"></i>
+                <h1 class="text-xl md:text-2xl font-bold text-primary">知识分享平台 <span class="text-sm font-normal text-gray-500">v10</span></h1>
+            </div>
+            <nav class="hidden md:flex space-x-6">
+                <a href="#documents" class="hover:text-primary transition-colors">文档管理</a>
+                <a href="#links" class="hover:text-primary transition-colors">链接管理</a>
+                <a href="#folders" class="hover:text-primary transition-colors">文件夹</a>
+                <a href="#features" class="hover:text-primary transition-colors">平台特色</a>
+                <a href="#permissions" class="hover:text-primary transition-colors">权限说明</a>
+                <a href="#notes" class="hover:text-warning transition-colors font-medium">注意事项</a>
+                <a href="#contact" class="hover:text-primary transition-colors">联系作者</a>
+            </nav>
+            <div class="flex items-center space-x-4">
+                <button id="login-btn" class="btn-secondary text-sm hidden md:block">
+                    <i class="fa fa-lock mr-1"></i>登录
+                </button>
+                <button id="mobile-menu-btn" class="md:hidden text-dark">
+                    <i class="fa fa-bars text-xl"></i>
+                </button>
+            </div>
+        </div>
+        <!-- 移动端菜单 -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
+            <div class="container mx-auto px-4 py-2 flex flex-col space-y-3">
+                <a href="#documents" class="py-2 hover:text-primary transition-colors">文档管理</a>
+                <a href="#links" class="py-2 hover:text-primary transition-colors">链接管理</a>
+                <a href="#folders" class="py-2 hover:text-primary transition-colors">文件夹</a>
+                <a href="#features" class="py-2 hover:text-primary transition-colors">平台特色</a>
+                <a href="#permissions" class="py-2 hover:text-primary transition-colors">权限说明</a>
+                <a href="#notes" class="py-2 hover:text-warning transition-colors font-medium">注意事项</a>
+                <a href="#contact" class="py-2 hover:text-primary transition-colors">联系作者</a>
+                <button id="mobile-login-btn" class="btn-secondary text-sm w-full text-center">
+                    <i class="fa fa-lock mr-1"></i>登录
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto px-4 py-8">
+        <!-- 介绍区域 -->
+        <section class="text-center mb-16 max-w-3xl mx-auto">
+            <div class="inline-block px-3 py-1 bg-primary/10 text-primary rounded-full text-sm mb-4">
+            </div>
+            <h2 class="text-[clamp(1.8rem,4vw,2.5rem)] font-bold mb-4 text-dark">智能分类，永久保存</h2>
+            <p class="text-gray-600 text-lg mb-8">系统会自动创建文件夹并按类型整理您的文档和链接，所有数据将永久保存在本地存储中，确保您的资源井井有条。</p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4">
+                <button id="add-document-btn" class="btn-primary permission-action hidden" data-permission="both">
+                    <i class="fa fa-plus mr-2"></i>添加文档
+                </button>
+                <button id="add-link-btn" class="btn-secondary permission-action hidden" data-permission="both">
+                    <i class="fa fa-link mr-2"></i>添加链接
+                </button>
+                <button id="create-folder-btn" class="btn-secondary permission-action hidden" data-permission="both">
+                    <i class="fa fa-folder mr-2"></i>新建文件夹
+                </button>
+            </div>
+        </section>
+
+        <!-- 文件夹管理区域 -->
+        <section id="folders" class="mb-16">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-dark flex items-center">
+                    <i class="fa fa-folder text-warning mr-3"></i>文件夹管理
+                </h3>
+                <span class="bg-warning/10 text-warning px-3 py-1 rounded-full text-sm" id="folder-count">0 个文件夹</span>
+            </div>
+            
+            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4" id="folders-container">
+                <!-- 文件夹会通过JS动态加载 -->
+            </div>
+        </section>
+
+        <!-- 当前文件夹内容区域 -->
+        <section id="current-folder" class="mb-16 hidden">
+            <div class="flex items-center justify-between mb-6">
+                <div class="flex items-center">
+                    <button id="back-to-folders" class="mr-3 text-gray-500 hover:text-primary transition-colors">
+                        <i class="fa fa-arrow-left"></i>
+                    </button>
+                    <h3 class="text-2xl font-bold text-dark flex items-center" id="current-folder-title">
+                        <i class="fa fa-folder-open text-warning mr-3"></i>文件夹内容
+                    </h3>
+                </div>
+                <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm" id="current-folder-item-count">0 个项目</span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="current-folder-content">
+                <!-- 当前文件夹内容会通过JS动态加载 -->
+            </div>
+        </section>
+
+        <!-- 所有文档区域 -->
+        <section id="documents" class="mb-16">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-dark flex items-center">
+                    <i class="fa fa-file-text-o text-primary mr-3"></i>所有文档
+                </h3>
+                <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm" id="document-count">0 个文档</span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="documents-container">
+                <!-- 文档卡片会通过JS动态加载 -->
+            </div>
+        </section>
+
+        <!-- 所有链接区域 -->
+        <section id="links" class="mb-16">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-2xl font-bold text-dark flex items-center">
+                    <i class="fa fa-link text-secondary mr-3"></i>所有链接
+                </h3>
+                <span class="bg-secondary/10 text-secondary px-3 py-1 rounded-full text-sm" id="link-count">0 个链接</span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="links-container">
+                <!-- 链接卡片会通过JS动态加载 -->
+            </div>
+        </section>
+
+        <!-- 权限说明区域 -->
+        <section id="permissions" class="mb-16">
+            <h3 class="text-2xl font-bold text-dark flex items-center mb-6">
+                <i class="fa fa-key text-amber-500 mr-3"></i>权限说明
+            </h3>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- 管理员权限 -->
+                    <div class="p-5 border border-primary/20 rounded-lg bg-primary/5">
+                        <h4 class="text-xl font-semibold mb-4 text-primary flex items-center">
+                            <i class="fa fa-shield mr-2"></i>管理员权限
+                        </h4>
+                        <p class="text-gray-600 mb-4 text-sm">拥有平台最高管理权限，负责内容审核与平台维护</p>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>管理所有文件夹、文档和链接</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>创建、编辑和删除任何文件夹</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>移动任何内容到不同文件夹</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>删除任何内容（需二次确认）</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>管理会员权限，审核会员申请</span>
+                            </li>
+                        </ul>
+                    </div>
+                    
+                    <!-- 会员权限 -->
+                    <div class="p-5 border border-secondary/20 rounded-lg bg-secondary/5">
+                        <h4 class="text-xl font-semibold mb-4 text-secondary flex items-center">
+                            <i class="fa fa-user-plus mr-2"></i>会员权限
+                        </h4>
+                        <p class="text-gray-600 mb-4 text-sm">适合内容贡献者，可参与平台建设但受限于安全管控</p>
+                        <ul class="space-y-3">
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>浏览所有文件夹、文档和链接</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>创建新文件夹、文档和链接</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>编辑自己创建的内容</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-check-circle text-green-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>移动自己的内容到不同文件夹</span>
+                            </li>
+                            <li class="flex items-start">
+                                <i class="fa fa-times-circle text-red-500 mt-1 mr-3 flex-shrink-0"></i>
+                                <span>无删除权限（包括自己添加的内容）</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 注意事项区域 -->
+        <section id="notes" class="mb-16">
+            <h3 class="text-2xl font-bold text-dark flex items-center mb-6">
+                <i class="fa fa-exclamation-triangle text-warning mr-3"></i>注意事项
+            </h3>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <!-- 存储功能说明 -->
+                <div class="mb-8">
+                    <h4 class="text-lg font-semibold mb-4 text-dark border-b pb-2">
+                        <i class="fa fa-database text-primary mr-2"></i>本地存储说明
+                    </h4>
+                    
+                    <div class="note-card">
+                        <i class="fa fa-info-circle text-warning text-xl mt-1 mr-3 flex-shrink-0"></i>
+                        <div>
+                            <p class="font-medium">数据永久保存</p>
+                            <p class="text-gray-600 text-sm mt-1">所有数据（文件夹、文档和链接）采用增强型本地存储方案，确保数据永久保存。除非手动清除浏览器数据，否则不会丢失。</p>
+                        </div>
+                    </div>
+                    
+                    <div class="note-card">
+                        <i class="fa fa-info-circle text-warning text-xl mt-1 mr-3 flex-shrink-0"></i>
+                        <div>
+                            <p class="font-medium">文件夹自动分类</p>
+                            <p class="text-gray-600 text-sm mt-1">系统会根据文件类型自动创建对应的文件夹（如文档、图片、视频等），您也可以手动创建自定义文件夹并整理内容。</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 数据安全 -->
+                <div>
+                    <h4 class="text-lg font-semibold mb-4 text-dark border-b pb-2">
+                        <i class="fa fa-shield text-primary mr-2"></i>数据安全与备份
+                    </h4>
+                    
+                    <div class="warning-card">
+                        <i class="fa fa-exclamation-circle text-danger text-xl mt-1 mr-3 flex-shrink-0"></i>
+                        <div>
+                            <p class="font-medium text-danger">重要数据建议备份</p>
+                            <p class="text-gray-600 text-sm mt-1">虽然系统采用增强型存储方案，但仍建议定期导出重要数据进行备份，以防浏览器数据意外丢失。</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 联系作者区域 -->
+        <section id="contact" class="mb-16">
+            <h3 class="text-2xl font-bold text-dark flex items-center mb-6">
+                <i class="fa fa-envelope-o text-primary mr-3"></i>联系作者
+            </h3>
+            
+            <div class="bg-white rounded-lg shadow p-6 md:p-8">
+                <p class="text-gray-600 mb-8 text-center max-w-2xl mx-auto">如果您有任何问题、建议或合作意向，欢迎通过以下方式联系我，我会尽快回复您。如需获取会员权限，请说明您的用途和使用场景。</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- 邮箱联系 -->
+                    <div class="flex flex-col items-center text-center p-4 rounded-lg hover:bg-neutral transition-colors duration-300">
+                        <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                            <i class="fa fa-envelope text-primary text-2xl"></i>
+                        </div>
+                        <h4 class="text-lg font-semibold mb-2">电子邮箱</h4>
+                        <p class="text-gray-600 mb-3">发送邮件咨询问题</p>
+                        <div class="flex flex-col items-center space-y-2 w-full">
+                            <div class="flex items-center w-full justify-center">
+                                <a href="mailto:320165264@qq.com" class="text-primary hover:underline mr-2 contact-info" data-type="email">320165264@qq.com</a>
+                                <button class="copy-contact text-gray-500 hover:text-primary transition-colors" title="复制邮箱">
+                                    <i class="fa fa-copy"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center w-full justify-center">
+                                <a href="mailto:linyonghan65@gmail.com" class="text-primary hover:underline mr-2 contact-info" data-type="email">linyonghan65@gmail.com</a>
+                                <button class="copy-contact text-gray-500 hover:text-primary transition-colors" title="复制邮箱">
+                                    <i class="fa fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- QQ联系 -->
+                    <div class="flex flex-col items-center text-center p-4 rounded-lg hover:bg-neutral transition-colors duration-300">
+                        <div class="w-16 h-16 rounded-full bg-qq/10 flex items-center justify-center mb-4">
+                            <i class="fa fa-qq text-qq text-2xl"></i>
+                        </div>
+                        <h4 class="text-lg font-semibold mb-2">QQ</h4>
+                        <p class="text-gray-600 mb-3">通过QQ沟通交流</p>
+                        <div class="flex items-center">
+                            <span class="text-gray-800 mr-2 contact-info" data-type="qq">320165264</span>
+                            <button class="copy-contact text-gray-500 hover:text-primary transition-colors" title="复制QQ号">
+                                <i class="fa fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 登录模态框 -->
+    <div id="login-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all">
+            <div class="p-6 border-b">
+                <h3 class="text-xl font-bold">用户登录</h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-gray-700 mb-2" for="login-username">用户名</label>
+                    <input type="text" id="login-username" class="input-field" placeholder="输入用户名">
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" for="login-password">密码</label>
+                    <input type="password" id="login-password" class="input-field" placeholder="输入密码">
+                </div>
+                <div class="text-red-500 text-sm hidden" id="login-error">
+                    用户名或密码错误，请重试
+                </div>
+            </div>
+            <div class="p-6 border-t flex justify-end space-x-3">
+                <button id="cancel-login" class="btn-secondary">取消</button>
+                <button id="submit-login" class="btn-primary">登录</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加文档模态框 -->
+    <div id="document-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all">
+            <div class="p-6 border-b">
+                <h3 class="text-xl font-bold">添加新文档</h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-gray-700 mb-2" for="doc-title">文档标题</label>
+                    <input type="text" id="doc-title" class="input-field" placeholder="例如：Python 编程入门">
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" for="doc-desc">文档描述</label>
+                    <textarea id="doc-desc" class="input-field" rows="3" placeholder="描述一下这个文档的内容..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" for="doc-type">文档类型</label>
+                    <select id="doc-type" class="input-field">
+                        <option value="docx">Word 文档 (.docx)</option>
+                        <option value="pdf">PDF 文档 (.pdf)</option>
+                        <option value="xlsx">Excel 表格 (.xlsx)</option>
+                        <option value="pptx">PowerPoint 演示文稿 (.pptx)</option>
+                        <option value="txt">文本文件 (.txt)</option>
+                        <option value="md">Markdown 文档 (.md)</option>
+                        <option value="zip">压缩文件 (.zip)</option>
+                        <option value="jpg">图片文件 (.jpg)</option>
+                        <option value="png">图片文件 (.png)</option>
+                        <option value="other">其他格式</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" for="doc-folder">保存到文件夹</label>
+                    <select id="doc-folder" class="input-field">
+                        <!-- 文件夹选项会动态加载 -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" for="doc-file">上传文件</label>
+                    <input type="file" id="doc-file" class="input-field" accept=".docx,.pdf,.xlsx,.pptx,.txt,.md,.zip,.jpg,.png">
+                </div>
+                <div class="text-sm text-gray-500">
+                    <i class="fa fa-info-circle text-warning mr-1"></i>
+                    系统会根据文件类型自动建议保存的文件夹
+                </div>
+            </div>
+            <div class="p-6 border-t flex justify-end space-x-3">
+                <button id="cancel-doc" class="btn-secondary">取消</button>
+                <button id="save-doc" class="btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加链接模态框 -->
+    <div id="link-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all">
+            <div class="p-6 border-b">
+                <h3 class="text-xl font-bold">添加新链接</h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-gray-700 mb-2" for="link-title">链接名称</label>
+                    <input type="text" id="link-title" class="input-field" placeholder="例如：MDN Web 文档">
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" for="link-desc">链接描述</label>
+                    <textarea id="link-desc" class="input-field" rows="3" placeholder="描述一下这个链接的内容..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" for="link-url">链接地址</label>
+                    <input type="url" id="link-url" class="input-field" placeholder="https://example.com" required>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" for="link-category">链接分类</label>
+                    <select id="link-category" class="input-field">
+                        <option value="programming">编程开发</option>
+                        <option value="design">设计创意</option>
+                        <option value="education">教育学习</option>
+                        <option value="news">新闻资讯</option>
+                        <option value="tools">工具资源</option>
+                        <option value="other">其他分类</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" for="link-folder">保存到文件夹</label>
+                    <select id="link-folder" class="input-field">
+                        <!-- 文件夹选项会动态加载 -->
+                    </select>
+                </div>
+            </div>
+            <div class="p-6 border-t flex justify-end space-x-3">
+                <button id="cancel-link" class="btn-secondary">取消</button>
+                <button id="save-link" class="btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 创建文件夹模态框 -->
+    <div id="folder-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all">
+            <div class="p-6 border-b">
+                <h3 class="text-xl font-bold">创建新文件夹</h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-gray-700 mb-2" for="folder-name">文件夹名称</label>
+                    <input type="text" id="folder-name" class="input-field" placeholder="例如：项目文档">
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" for="folder-desc">文件夹描述</label>
+                    <textarea id="folder-desc" class="input-field" rows="2" placeholder="描述这个文件夹的用途..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" for="folder-type">文件夹类型</label>
+                    <select id="folder-type" class="input-field">
+                        <option value="general">通用文件夹</option>
+                        <option value="documents">文档文件夹</option>
+                        <option value="images">图片文件夹</option>
+                        <option value="programming">编程资源</option>
+                        <option value="links">链接集合</option>
+                        <option value="custom">自定义类型</option>
+                    </select>
+                </div>
+            </div>
+            <div class="p-6 border-t flex justify-end space-x-3">
+                <button id="cancel-folder" class="btn-secondary">取消</button>
+                <button id="save-folder" class="btn-primary">创建</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 移动项目模态框 -->
+    <div id="move-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all">
+            <div class="p-6 border-b">
+                <h3 class="text-xl font-bold">移动项目</h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-gray-600" id="move-item-name">将项目移动到：</p>
+                <div>
+                    <label class="block text-gray-700 mb-2" for="target-folder">目标文件夹</label>
+                    <select id="target-folder" class="input-field">
+                        <!-- 文件夹选项会动态加载 -->
+                    </select>
+                </div>
+                <input type="hidden" id="move-item-id" value="">
+                <input type="hidden" id="move-item-type" value="">
+            </div>
+            <div class="p-6 border-t flex justify-end space-x-3">
+                <button id="cancel-move" class="btn-secondary">取消</button>
+                <button id="confirm-move" class="btn-primary">移动</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑内容模态框 -->
+    <div id="edit-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all">
+            <div class="p-6 border-b">
+                <h3 class="text-xl font-bold">编辑内容</h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-gray-700 mb-2" for="edit-title">标题</label>
+                    <input type="text" id="edit-title" class="input-field">
+                </div>
+                <div>
+                    <label class="block text-gray-700 mb-2" for="edit-desc">描述</label>
+                    <textarea id="edit-desc" class="input-field" rows="3"></textarea>
+                </div>
+                <div id="edit-url-container" class="hidden">
+                    <label class="block text-gray-700 mb-2" for="edit-url">链接地址</label>
+                    <input type="url" id="edit-url" class="input-field">
+                </div>
+                <div id="edit-folder-container">
+                    <label class="block text-gray-700 mb-2" for="edit-folder">所在文件夹</label>
+                    <select id="edit-folder" class="input-field">
+                        <!-- 文件夹选项会动态加载 -->
+                    </select>
+                </div>
+                <input type="hidden" id="edit-type" value="">
+                <input type="hidden" id="edit-id" value="">
+                <input type="hidden" id="edit-creator" value="">
+            </div>
+            <div class="p-6 border-t flex justify-end space-x-3">
+                <button id="cancel-edit" class="btn-secondary">取消</button>
+                <button id="save-edit" class="btn-primary">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 确认删除模态框 -->
+    <div id="delete-confirm-modal" class="fixed inset-0 bg-black/50 z-50 hidden items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md transform transition-all">
+            <div class="p-6 border-b">
+                <h3 class="text-xl font-bold text-red-500 flex items-center">
+                    <i class="fa fa-exclamation-triangle mr-2"></i>确认删除
+                </h3>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-gray-700">您确定要删除这个项目吗？此操作无法撤销。</p>
+                <input type="hidden" id="delete-type" value="">
+                <input type="hidden" id="delete-id" value="">
+            </div>
+            <div class="p-6 border-t flex justify-end space-x-3">
+                <button id="cancel-delete" class="btn-secondary">取消</button>
+                <button id="confirm-delete" class="btn-danger">确认删除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通知提示 -->
+    <div id="notification" class="fixed bottom-4 right-4 bg-dark text-white px-4 py-3 rounded-md shadow-lg transform translate-y-20 opacity-0 transition-all duration-300 flex items-center">
+        <i id="notification-icon" class="fa fa-check-circle mr-2"></i>
+        <span id="notification-text">操作成功</span>
+    </div>
+
+    <footer class="bg-dark text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa fa-folder-open text-primary text-xl"></i>
+                        <span class="font-bold">知识分享平台 v10</span>
+                    </div>
+                    <p class="text-gray-400 text-sm mt-2">智能分类，永久保存</p>
+                </div>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fa fa-github text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fa fa-twitter text-xl"></i>
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fa fa-envelope text-xl"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 mt-6 pt-6 text-center text-gray-400 text-sm">
+                &copy; 2025 知识分享平台 - 保留所有权利 | 数据采用增强型本地存储方案永久保存
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // 全局状态 - 用户登录信息和权限
+        let currentUser = {
+            loggedIn: false,
+            username: '',
+            role: '' // 'admin', 'member', 或 ''
+        };
+        
+        // 当前打开的文件夹
+        let currentFolderId = null;
+        
+        // 预定义的用户账号
+        const users = {
+            'admin': {
+                password: 'Li370829.',
+                role: 'admin'
+            },
+            'member1': {
+                password: 'member123',
+                role: 'member'
+            }
+        };
+        
+        // 文档类型图标映射
+        const docTypeIcons = {
+            'docx': { icon: 'fa-file-word-o', color: 'text-blue-600', folder: '文档文件' },
+            'pdf': { icon: 'fa-file-pdf-o', color: 'text-red-600', folder: '文档文件' },
+            'xlsx': { icon: 'fa-file-excel-o', color: 'text-green-600', folder: '表格文件' },
+            'pptx': { icon: 'fa-file-powerpoint-o', color: 'text-orange-600', folder: '演示文件' },
+            'txt': { icon: 'fa-file-text-o', color: 'text-gray-700', folder: '文本文件' },
+            'md': { icon: 'fa-file-code-o', color: 'text-purple-600', folder: '代码文件' },
+            'zip': { icon: 'fa-file-zip-o', color: 'text-amber-600', folder: '压缩文件' },
+            'jpg': { icon: 'fa-file-image-o', color: 'text-green-500', folder: '图片文件' },
+            'png': { icon: 'fa-file-image-o', color: 'text-green-500', folder: '图片文件' },
+            'other': { icon: 'fa-file-o', color: 'text-gray-500', folder: '其他文件' }
+        };
+        
+        // 链接分类图标映射
+        const linkCategoryIcons = {
+            'programming': { icon: 'fa-code', color: 'text-purple-500', folder: '编程资源' },
+            'design': { icon: 'fa-paint-brush', color: 'text-pink-500', folder: '设计资源' },
+            'education': { icon: 'fa-graduation-cap', color: 'text-blue-500', folder: '教育资源' },
+            'news': { icon: 'fa-newspaper-o', color: 'text-gray-500', folder: '新闻资讯' },
+            'tools': { icon: 'fa-wrench', color: 'text-amber-500', folder: '工具资源' },
+            'other': { icon: 'fa-link', color: 'text-green-500', folder: '其他链接' }
+        };
+        
+        // 文件夹类型图标映射
+        const folderTypeIcons = {
+            'general': { icon: 'fa-folder', color: 'text-amber-500' },
+            'documents': { icon: 'fa-folder-open', color: 'text-blue-500' },
+            'images': { icon: 'fa-folder-open', color: 'text-green-500' },
+            'programming': { icon: 'fa-folder-open', color: 'text-purple-500' },
+            'links': { icon: 'fa-folder-open', color: 'text-teal-500' },
+            'custom': { icon: 'fa-folder-open', color: 'text-gray-500' }
+        };
+        
+        // 初始化：页面加载时从本地存储读取数据
+        window.addEventListener('DOMContentLoaded', () => {
+            // 初始化存储结构（确保数据格式正确）
+            initializeStorageStructure();
+            
+            // 加载所有数据
+            loadFoldersFromStorage();
+            loadDocumentsFromStorage();
+            loadLinksFromStorage();
+            
+            // 更新计数
+            updateAllCounts();
+            
+            // 初始化权限UI
+            updatePermissionUI();
+        });
+        
+        // 初始化存储结构
+        function initializeStorageStructure() {
+            // 检查是否有现有数据，如没有则创建初始结构
+            if (!localStorage.getItem('knowledgeStructure_v10')) {
+                // 创建默认文件夹
+                const defaultFolders = [
+                    {
+                        id: generateId(),
+                        name: '文档文件',
+                        description: '存放各种文档类型文件（Word、PDF等）',
+                        type: 'documents',
+                        creator: 'system',
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        id: generateId(),
+                        name: '表格文件',
+                        description: '存放Excel等表格文件',
+                        type: 'documents',
+                        creator: 'system',
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        id: generateId(),
+                        name: '图片文件',
+                        description: '存放各种图片文件',
+                        type: 'images',
+                        creator: 'system',
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        id: generateId(),
+                        name: '编程资源',
+                        description: '存放编程相关文档和链接',
+                        type: 'programming',
+                        creator: 'system',
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        id: generateId(),
+                        name: '其他链接',
+                        description: '存放各类外部链接',
+                        type: 'links',
+                        creator: 'system',
+                        createdAt: new Date().toISOString()
+                    }
+                ];
+                
+                // 创建示例文档
+                const today = new Date().toISOString();
+                const sampleDocuments = [
+                    {
+                        id: generateId(),
+                        title: 'Python 编程入门.docx',
+                        description: '这是一份关于Python编程基础的入门文档，适合初学者学习，包含变量、数据类型、控制流等基础知识。',
+                        type: 'docx',
+                        folderId: defaultFolders.find(f => f.name === '文档文件').id,
+                        creator: 'admin',
+                        date: today
+                    },
+                    {
+                        id: generateId(),
+                        title: '数据分析实战.pdf',
+                        description: '数据分析实战案例详解，包含多个行业的实际应用，介绍了数据清洗、可视化和建模的完整流程。',
+                        type: 'pdf',
+                        folderId: defaultFolders.find(f => f.name === '文档文件').id,
+                        creator: 'admin',
+                        date: today
+                    }
+                ];
+                
+                // 创建示例链接
+                const sampleLinks = [
+                    {
+                        id: generateId(),
+                        title: 'MDN Web 文档',
+                        description: '最权威的Web开发技术文档，包含HTML、CSS、JavaScript等内容，是前端开发者必备参考资料。',
+                        url: 'https://developer.mozilla.org/zh-CN/',
+                        category: 'programming',
+                        folderId: defaultFolders.find(f => f.name === '编程资源').id,
+                        creator: 'admin',
+                        date: today
+                    },
+                    {
+                        id: generateId(),
+                        title: 'GitHub',
+                        description: '全球最大的代码托管平台，可用于版本控制和协作开发，拥有海量开源项目和代码资源。',
+                        url: 'https://github.com/',
+                        category: 'programming',
+                        folderId: defaultFolders.find(f => f.name === '编程资源').id,
+                        creator: 'admin',
+                        date: today
+                    }
+                ];
+                
+                // 保存初始数据结构
+                localStorage.setItem('knowledgeFolders_v10', JSON.stringify(defaultFolders));
+                localStorage.setItem('knowledgeDocuments_v10', JSON.stringify(sampleDocuments));
+                localStorage.setItem('knowledgeLinks_v10', JSON.stringify(sampleLinks));
+                localStorage.setItem('knowledgeStructure_v10', JSON.stringify({version: '1.0'}));
+            }
+        }
+        
+        // 移动端菜单切换
+        const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        const mobileMenu = document.getElementById('mobile-menu');
+        
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+        
+        // 导航栏滚动效果
+        window.addEventListener('scroll', () => {
+            const header = document.querySelector('header');
+            if (window.scrollY > 10) {
+                header.classList.add('py-2');
+                header.classList.remove('py-4');
+            } else {
+                header.classList.add('py-4');
+                header.classList.remove('py-2');
+            }
+        });
+        
+        // 显示通知
+        function showNotification(message, isSuccess = true) {
+            const notification = document.getElementById('notification');
+            const notificationText = document.getElementById('notification-text');
+            const notificationIcon = document.getElementById('notification-icon');
+            
+            notificationText.textContent = message;
+            notificationIcon.className = isSuccess ? 'fa fa-check-circle mr-2' : 'fa fa-exclamation-circle mr-2 text-amber-400';
+            
+            notification.classList.remove('translate-y-20', 'opacity-0');
+            notification.classList.add('translate-y-0', 'opacity-100');
+            
+            setTimeout(() => {
+                notification.classList.remove('translate-y-0', 'opacity-100');
+                notification.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+        
+        // 复制功能
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.copy-btn')) {
+                const copyBtn = e.target.closest('.copy-btn');
+                const card = copyBtn.closest('.document-card, .link-card, .folder-card');
+                let textToCopy = '';
+                let message = '';
+                
+                if (card.classList.contains('document-card')) {
+                    textToCopy = card.querySelector('[data-field="title"]').textContent;
+                    message = '文档名称已复制';
+                } else if (card.classList.contains('link-card')) {
+                    textToCopy = card.querySelector('.link-url').href;
+                    message = '链接已复制';
+                } else if (card.classList.contains('folder-card')) {
+                    textToCopy = card.querySelector('[data-field="name"]').textContent;
+                    message = '文件夹名称已复制';
+                }
+                
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    showNotification(message);
+                }).catch(err => {
+                    showNotification('复制失败，请手动复制', false);
+                    console.error('复制失败:', err);
+                });
+            }
+        });
+        
+        // 复制联系信息功能
+        document.querySelectorAll('.copy-contact').forEach(button => {
+            button.addEventListener('click', (e) => {
+                const contactInfo = e.target.closest('.flex').querySelector('.contact-info').textContent;
+                const contactType = e.target.closest('.flex').querySelector('.contact-info').dataset.type;
+                let typeText = '';
+                
+                switch(contactType) {
+                    case 'email':
+                        typeText = '邮箱';
+                        break;
+                    case 'qq':
+                        typeText = 'QQ号';
+                        break;
+                }
+                
+                navigator.clipboard.writeText(contactInfo).then(() => {
+                    showNotification(`已复制${typeText}到剪贴板`);
+                }).catch(err => {
+                    showNotification(`复制${typeText}失败，请手动复制`, false);
+                    console.error('复制失败:', err);
+                });
+            });
+        });
+        
+        // 登录相关功能
+        const loginModal = document.getElementById('login-modal');
+        const loginBtn = document.getElementById('login-btn');
+        const mobileLoginBtn = document.getElementById('mobile-login-btn');
+        const cancelLoginBtn = document.getElementById('cancel-login');
+        const submitLoginBtn = document.getElementById('submit-login');
+        const loginError = document.getElementById('login-error');
+        
+        // 打开登录模态框
+        loginBtn.addEventListener('click', openLoginModal);
+        mobileLoginBtn.addEventListener('click', openMobileLoginModal);
+        
+        function openLoginModal() {
+            loginModal.classList.remove('hidden');
+            loginModal.classList.add('flex');
+            loginError.classList.add('hidden');
+        }
+        
+        function openMobileLoginModal() {
+            loginModal.classList.remove('hidden');
+            loginModal.classList.add('flex');
+            mobileMenu.classList.add('hidden');
+            loginError.classList.add('hidden');
+        }
+        
+        // 关闭登录模态框
+        cancelLoginBtn.addEventListener('click', () => {
+            loginModal.classList.add('hidden');
+            loginModal.classList.remove('flex');
+            document.getElementById('login-username').value = '';
+            document.getElementById('login-password').value = '';
+        });
+        
+        // 点击模态框外部关闭
+        loginModal.addEventListener('click', (e) => {
+            if (e.target === loginModal) {
+                loginModal.classList.add('hidden');
+                loginModal.classList.remove('flex');
+                document.getElementById('login-username').value = '';
+                document.getElementById('login-password').value = '';
+            }
+        });
+        
+        // 提交登录
+        submitLoginBtn.addEventListener('click', () => {
+            const username = document.getElementById('login-username').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            
+            // 验证用户
+            if (users[username] && users[username].password === password) {
+                // 登录成功
+                currentUser = {
+                    loggedIn: true,
+                    username: username,
+                    role: users[username].role
+                };
+                
+                loginModal.classList.add('hidden');
+                loginModal.classList.remove('flex');
+                document.getElementById('login-username').value = '';
+                document.getElementById('login-password').value = '';
+                
+                // 更新UI，显示对应权限
+                updatePermissionUI();
+                showNotification(`登录成功，您拥有${currentUser.role === 'admin' ? '管理员' : '会员'}权限`);
+            } else {
+                loginError.classList.remove('hidden');
+            }
+        });
+        
+        // 更新权限UI
+        function updatePermissionUI() {
+            if (currentUser.loggedIn) {
+                // 显示适合的操作按钮
+                if (currentUser.role === 'admin') {
+                    // 管理员看到所有操作按钮
+                    document.querySelectorAll('.admin-actions').forEach(el => {
+                        el.classList.remove('hidden');
+                    });
+                    document.querySelectorAll('.member-actions, .visitor-actions').forEach(el => {
+                        el.classList.add('hidden');
+                    });
+                } else if (currentUser.role === 'member') {
+                    // 会员看不到删除按钮
+                    document.querySelectorAll('.member-actions').forEach(el => {
+                        el.classList.remove('hidden');
+                    });
+                    document.querySelectorAll('.admin-actions, .visitor-actions').forEach(el => {
+                        el.classList.add('hidden');
+                    });
+                }
+                
+                // 显示添加内容按钮（管理员和会员都可以添加）
+                document.querySelectorAll('.permission-action[data-permission="both"]').forEach(el => {
+                    el.classList.remove('hidden');
+                });
+                
+                // 更改登录按钮为登出按钮
+                loginBtn.innerHTML = `<i class="fa fa-sign-out mr-1"></i>退出登录 (${currentUser.username})`;
+                mobileLoginBtn.innerHTML = `<i class="fa fa-sign-out mr-1"></i>退出登录`;
+                
+                // 添加登出功能
+                loginBtn.removeEventListener('click', openLoginModal);
+                loginBtn.addEventListener('click', logout);
+                
+                mobileLoginBtn.removeEventListener('click', openMobileLoginModal);
+                mobileLoginBtn.addEventListener('click', logout);
+            } else {
+                // 未登录状态，只显示访客按钮
+                document.querySelectorAll('.visitor-actions').forEach(el => {
+                    el.classList.remove('hidden');
+                });
+                document.querySelectorAll('.admin-actions, .member-actions').forEach(el => {
+                    el.classList.add('hidden');
+                });
+                
+                // 隐藏添加内容按钮
+                document.querySelectorAll('.permission-action').forEach(el => {
+                    el.classList.add('hidden');
+                });
+                
+                // 更改登出按钮为登录按钮
+                loginBtn.innerHTML = '<i class="fa fa-lock mr-1"></i>登录';
+                mobileLoginBtn.innerHTML = '<i class="fa fa-lock mr-1"></i>登录';
+                
+                // 恢复登录功能
+                loginBtn.removeEventListener('click', logout);
+                loginBtn.addEventListener('click', openLoginModal);
+                
+                mobileLoginBtn.removeEventListener('click', logout);
+                mobileLoginBtn.addEventListener('click', openMobileLoginModal);
+            }
+        }
+        
+        // 登出功能
+        function logout() {
+            currentUser = {
+                loggedIn: false,
+                username: '',
+                role: ''
+            };
+            updatePermissionUI();
+            showNotification('已成功退出登录');
+        }
+        
+        // 文件夹相关功能
+        // 打开文件夹
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.folder-card')) {
+                const folderCard = e.target.closest('.folder-card');
+                const folderId = folderCard.dataset.id;
+                
+                openFolder(folderId);
+            }
+        });
+        
+        // 返回文件夹列表
+        document.getElementById('back-to-folders').addEventListener('click', () => {
+            currentFolderId = null;
+            document.getElementById('current-folder').classList.add('hidden');
+            document.getElementById('documents').classList.remove('hidden');
+            document.getElementById('links').classList.remove('hidden');
+            document.getElementById('folders').classList.remove('hidden');
+        });
+        
+        // 打开文件夹
+        function openFolder(folderId) {
+            currentFolderId = folderId;
+            
+            // 获取文件夹信息
+            const folders = JSON.parse(localStorage.getItem('knowledgeFolders_v10') || '[]');
+            const folder = folders.find(f => f.id === folderId);
+            
+            if (folder) {
+                // 更新文件夹标题
+                document.getElementById('current-folder-title').innerHTML = 
+                    `<i class="fa ${folderTypeIcons[folder.type].icon} ${folderTypeIcons[folder.type].color} mr-3"></i>${folder.name}`;
+                
+                // 加载文件夹内容
+                loadFolderContent(folderId);
+                
+                // 显示当前文件夹内容，隐藏其他区域
+                document.getElementById('current-folder').classList.remove('hidden');
+                document.getElementById('documents').classList.add('hidden');
+                document.getElementById('links').classList.add('hidden');
+                document.getElementById('folders').classList.add('hidden');
+            }
+        }
+        
+        // 加载文件夹内容
+        function loadFolderContent(folderId) {
+            const contentContainer = document.getElementById('current-folder-content');
+            contentContainer.innerHTML = '';
+            
+            // 获取文件夹中的文档
+            const documents = JSON.parse(localStorage.getItem('knowledgeDocuments_v10') || '[]');
+            const folderDocuments = documents.filter(doc => doc.folderId === folderId);
+            
+            // 获取文件夹中的链接
+            const links = JSON.parse(localStorage.getItem('knowledgeLinks_v10') || '[]');
+            const folderLinks = links.filter(link => link.folderId === folderId);
+            
+            // 计算总项目数
+            const totalItems = folderDocuments.length + folderLinks.length;
+            document.getElementById('current-folder-item-count').textContent = `${totalItems} 个项目`;
+            
+            // 添加文档
+            folderDocuments.forEach(doc => {
+                const iconInfo = docTypeIcons[doc.type] || docTypeIcons['other'];
+                const newCard = createDocumentCard(doc);
+                contentContainer.appendChild(newCard);
+            });
+            
+            // 添加链接
+            folderLinks.forEach(link => {
+                const iconInfo = linkCategoryIcons[link.category] || linkCategoryIcons['other'];
+                const newCard = createLinkCard(link);
+                contentContainer.appendChild(newCard);
+            });
+            
+            // 如果文件夹为空
+            if (totalItems === 0) {
+                contentContainer.innerHTML = `
+                    <div class="col-span-full text-center py-12">
+                        <i class="fa fa-folder-open text-gray-300 text-5xl mb-4"></i>
+                        <p class="text-gray-500">此文件夹为空</p>
+                        <p class="text-gray-400 text-sm mt-2">添加文档或链接到这个文件夹</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // 创建文件夹模态框控制
+        document.getElementById('create-folder-btn').addEventListener('click', () => {
+            if (currentUser.loggedIn) {
+                document.getElementById('folder-modal').classList.remove('hidden');
+                document.getElementById('folder-modal').classList.add('flex');
+                document.getElementById('folder-name').value = '';
+                document.getElementById('folder-desc').value = '';
+                document.getElementById('folder-type').selectedIndex = 0;
+            } else {
+                showNotification('请先登录以获取创建文件夹权限', false);
+            }
+        });
+        
+        document.getElementById('cancel-folder').addEventListener('click', () => {
+            document.getElementById('folder-modal').classList.add('hidden');
+            document.getElementById('folder-modal').classList.remove('flex');
+        });
+        
+        document.getElementById('folder-modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('folder-modal')) {
+                document.getElementById('folder-modal').classList.add('hidden');
+                document.getElementById('folder-modal').classList.remove('flex');
+            }
+        });
+        
+        // 保存新文件夹
+        document.getElementById('save-folder').addEventListener('click', () => {
+            if (!currentUser.loggedIn) return;
+            
+            const name = document.getElementById('folder-name').value.trim();
+            const desc = document.getElementById('folder-desc').value.trim();
+            const type = document.getElementById('folder-type').value;
+            
+            if (!name) {
+                showNotification('请输入文件夹名称', false);
+                return;
+            }
+            
+            // 检查文件夹名称是否已存在
+            const folders = JSON.parse(localStorage.getItem('knowledgeFolders_v10') || '[]');
+            if (folders.some(f => f.name === name)) {
+                showNotification('已存在同名文件夹，请更换名称', false);
+                return;
+            }
+            
+            // 创建新文件夹
+            const newFolder = {
+                id: generateId(),
+                name: name,
+                description: desc,
+                type: type,
+                creator: currentUser.username,
+                createdAt: new Date().toISOString()
+            };
+            
+            // 保存到本地存储
+            folders.push(newFolder);
+            localStorage.setItem('knowledgeFolders_v10', JSON.stringify(folders));
+            
+            // 重新加载文件夹
+            loadFoldersFromStorage();
+            updateFolderCounts();
+            
+            // 关闭模态框
+            document.getElementById('folder-modal').classList.add('hidden');
+            document.getElementById('folder-modal').classList.remove('flex');
+            
+            showNotification('文件夹创建成功');
+        });
+        
+        // 移动项目功能
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.move-btn') && currentUser.loggedIn) {
+                const moveBtn = e.target.closest('.move-btn');
+                const card = moveBtn.closest('.document-card, .link-card');
+                const isDocument = card.classList.contains('document-card');
+                const itemId = card.dataset.id;
+                
+                // 检查会员是否有权限
+                const creator = card.dataset.creator || 'admin';
+                if (currentUser.role === 'member' && creator !== currentUser.username) {
+                    showNotification('您只能移动自己创建的内容', false);
+                    return;
+                }
+                
+                // 加载目标文件夹选项
+                loadFolderOptions('target-folder', itemId, isDocument ? 'document' : 'link');
+                
+                // 设置移动项目信息
+                document.getElementById('move-item-id').value = itemId;
+                document.getElementById('move-item-type').value = isDocument ? 'document' : 'link';
+                document.getElementById('move-item-name').textContent = `将 "${card.querySelector('[data-field="title"]').textContent}" 移动到：`;
+                
+                // 显示移动模态框
+                document.getElementById('move-modal').classList.remove('hidden');
+                document.getElementById('move-modal').classList.add('flex');
+            } else if (e.target.closest('.move-btn') && !currentUser.loggedIn) {
+                showNotification('请先登录以获取移动权限', false);
+            }
+        });
+        
+        // 确认移动项目
+        document.getElementById('confirm-move').addEventListener('click', () => {
+            if (!currentUser.loggedIn) return;
+            
+            const itemId = document.getElementById('move-item-id').value;
+            const itemType = document.getElementById('move-item-type').value;
+            const targetFolderId = document.getElementById('target-folder').value;
+            
+            if (!targetFolderId) {
+                showNotification('请选择目标文件夹', false);
+                return;
+            }
+            
+            if (itemType === 'document') {
+                // 移动文档
+                const documents = JSON.parse(localStorage.getItem('knowledgeDocuments_v10') || '[]');
+                const docIndex = documents.findIndex(doc => doc.id === itemId);
+                
+                if (docIndex !== -1) {
+                    // 检查权限
+                    if (currentUser.role === 'member' && documents[docIndex].creator !== currentUser.username) {
+                        showNotification('您只能移动自己创建的内容', false);
+                        return;
+                    }
+                    
+                    documents[docIndex].folderId = targetFolderId;
+                    localStorage.setItem('knowledgeDocuments_v10', JSON.stringify(documents));
+                    
+                    // 重新加载数据
+                    loadDocumentsFromStorage();
+                    if (currentFolderId) {
+                        loadFolderContent(currentFolderId);
+                    }
+                    
+                    showNotification('文档已移动');
+                }
+            } else {
+                // 移动链接
+                const links = JSON.parse(localStorage.getItem('knowledgeLinks_v10') || '[]');
+                const linkIndex = links.findIndex(link => link.id === itemId);
+                
+                if (linkIndex !== -1) {
+                    // 检查权限
+                    if (currentUser.role === 'member' && links[linkIndex].creator !== currentUser.username) {
+                        showNotification('您只能移动自己创建的内容', false);
+                        return;
+                    }
+                    
+                    links[linkIndex].folderId = targetFolderId;
+                    localStorage.setItem('knowledgeLinks_v10', JSON.stringify(links));
+                    
+                    // 重新加载数据
+                    loadLinksFromStorage();
+                    if (currentFolderId) {
+                        loadFolderContent(currentFolderId);
+                    }
+                    
+                    showNotification('链接已移动');
+                }
+            }
+            
+            // 关闭模态框
+            document.getElementById('move-modal').classList.add('hidden');
+            document.getElementById('move-modal').classList.remove('flex');
+        });
+        
+        // 取消移动
+        document.getElementById('cancel-move').addEventListener('click', () => {
+            document.getElementById('move-modal').classList.add('hidden');
+            document.getElementById('move-modal').classList.remove('flex');
+        });
+        
+        // 编辑功能
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.edit-btn') && currentUser.loggedIn) {
+                const editBtn = e.target.closest('.edit-btn');
+                const card = editBtn.closest('.document-card, .link-card, .folder-card');
+                const isDocument = card.classList.contains('document-card');
+                const isLink = card.classList.contains('link-card');
+                const isFolder = card.classList.contains('folder-card');
+                
+                // 检查权限
+                const creator = card.dataset.creator || 'admin';
+                if (currentUser.role === 'member' && creator !== currentUser.username) {
+                    showNotification('您只能编辑自己创建的内容', false);
+                    return;
+                }
+                
+                if (isFolder) {
+                    // 编辑文件夹
+                    const folderId = card.dataset.id;
+                    const folders = JSON.parse(localStorage.getItem('knowledgeFolders_v10') || '[]');
+                    const folder = folders.find(f => f.id === folderId);
+                    
+                    if (folder) {
+                        document.getElementById('edit-title').value = folder.name;
+                        document.getElementById('edit-desc').value = folder.description || '';
+                        document.getElementById('edit-type').value = 'folder';
+                        document.getElementById('edit-id').value = folder.id;
+                        document.getElementById('edit-creator').value = folder.creator;
+                        
+                        // 隐藏不需要的字段
+                        document.getElementById('edit-url-container').classList.add('hidden');
+                        document.getElementById('edit-folder-container').classList.add('hidden');
+                        
+                        // 显示编辑模态框
+                        document.getElementById('edit-modal').classList.remove('hidden');
+                        document.getElementById('edit-modal').classList.add('flex');
+                    }
+                } else {
+                    // 编辑文档或链接
+                    // 加载文件夹选项
+                    loadFolderOptions('edit-folder', card.dataset.id, isDocument ? 'document' : 'link');
+                    
+                    // 填充编辑表单
+                    document.getElementById('edit-title').value = card.querySelector('[data-field="title"]').textContent;
+                    document.getElementById('edit-desc').value = card.querySelector('[data-field="description"]').textContent;
+                    document.getElementById('edit-type').value = isDocument ? 'document' : 'link';
+                    document.getElementById('edit-id').value = card.dataset.id;
+                    document.getElementById('edit-creator').value = creator;
+                    
+                    // 如果是链接，显示URL编辑框
+                    if (isLink) {
+                        document.getElementById('edit-url').value = card.querySelector('.link-url').href;
+                        document.getElementById('edit-url-container').classList.remove('hidden');
+                    } else {
+                        document.getElementById('edit-url-container').classList.add('hidden');
+                    }
+                    
+                    // 显示编辑模态框
+                    document.getElementById('edit-modal').classList.remove('hidden');
+                    document.getElementById('edit-modal').classList.add('flex');
+                }
+            } else if (e.target.closest('.edit-btn') && !currentUser.loggedIn) {
+                showNotification('请先登录以获取编辑权限', false);
+            }
+        });
+        
+        // 删除功能 - 只有管理员可以删除
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.delete-btn')) {
+                if (currentUser.loggedIn && currentUser.role === 'admin') {
+                    const deleteBtn = e.target.closest('.delete-btn');
+                    const card = deleteBtn.closest('.document-card, .link-card, .folder-card');
+                    const isDocument = card.classList.contains('document-card');
+                    const isLink = card.classList.contains('link-card');
+                    const isFolder = card.classList.contains('folder-card');
+                    const itemId = card.dataset.id;
+                    
+                    // 记录要删除的项目信息
+                    document.getElementById('delete-type').value = isDocument ? 'document' : (isLink ? 'link' : 'folder');
+                    document.getElementById('delete-id').value = itemId;
+                    
+                    // 显示删除确认模态框
+                    document.getElementById('delete-confirm-modal').classList.remove('hidden');
+                    document.getElementById('delete-confirm-modal').classList.add('flex');
+                } else if (currentUser.loggedIn && currentUser.role === 'member') {
+                    showNotification('会员没有删除权限', false);
+                } else {
+                    showNotification('请以管理员身份登录以获取删除权限', false);
+                }
+            }
+        });
+        
+        // 保存编辑
+        document.getElementById('save-edit').addEventListener('click', () => {
+            if (!currentUser.loggedIn) return;
+            
+            const type = document.getElementById('edit-type').value;
+            const id = document.getElementById('edit-id').value;
+            const title = document.getElementById('edit-title').value.trim();
+            const desc = document.getElementById('edit-desc').value.trim();
+            const creator = document.getElementById('edit-creator').value;
+            
+            // 检查会员权限
+            if (currentUser.role === 'member' && creator !== currentUser.username) {
+                showNotification('您只能编辑自己添加的内容', false);
+                return;
+            }
+            
+            if (!title) {
+                showNotification('请填写标题', false);
+                return;
+            }
+            
+            if (type === 'folder') {
+                // 编辑文件夹
+                const folders = JSON.parse(localStorage.getItem('knowledgeFolders_v10') || '[]');
+                const folderIndex = folders.findIndex(f => f.id === id);
+                
+                if (folderIndex !== -1) {
+                    // 检查名称是否已存在（排除自身）
+                    if (folders.some(f => f.name === title && f.id !== id)) {
+                        showNotification('已存在同名文件夹，请更换名称', false);
+                        return;
+                    }
+                    
+                    folders[folderIndex].name = title;
+                    folders[folderIndex].description = desc;
+                    localStorage.setItem('knowledgeFolders_v10', JSON.stringify(folders));
+                    
+                    // 重新加载文件夹
+                    loadFoldersFromStorage();
+                    
+                    // 如果正在查看该文件夹，更新标题
+                    if (currentFolderId === id) {
+                        document.getElementById('current-folder-title').innerHTML = 
+                            `<i class="fa ${folderTypeIcons[folders[folderIndex].type].icon} ${folderTypeIcons[folders[folderIndex].type].color} mr-3"></i>${title}`;
+                    }
+                    
+                    showNotification('文件夹更新成功');
+                }
+            } else if (type === 'document') {
+                // 编辑文档
+                const documents = JSON.parse(localStorage.getItem('knowledgeDocuments_v10') || '[]');
+                const docIndex = documents.findIndex(doc => doc.id === id);
+                const folderId = document.getElementById('edit-folder').value;
+                
+                if (docIndex !== -1) {
+                    documents[docIndex].title = title;
+                    documents[docIndex].description = desc;
+                    documents[docIndex].folderId = folderId;
+                    localStorage.setItem('knowledgeDocuments_v10', JSON.stringify(documents));
+                    
+                    // 重新加载数据
+                    loadDocumentsFromStorage();
+                    if (currentFolderId) {
+                        loadFolderContent(currentFolderId);
+                    }
+                    
+                    showNotification('文档更新成功');
+                }
+            } else if (type === 'link') {
+                // 编辑链接
+                const links = JSON.parse(localStorage.getItem('knowledgeLinks_v10') || '[]');
+                const linkIndex = links.findIndex(link => link.id === id);
+                const url = document.getElementById('edit-url').value.trim();
+                const folderId = document.getElementById('edit-folder').value;
+                
+                if (linkIndex !== -1 && url) {
+                    links[linkIndex].title = title;
+                    links[linkIndex].description = desc;
+                    links[linkIndex].url = url;
+                    links[linkIndex].folderId = folderId;
+                    localStorage.setItem('knowledgeLinks_v10', JSON.stringify(links));
+                    
+                    // 重新加载数据
+                    loadLinksFromStorage();
+                    if (currentFolderId) {
+                        loadFolderContent(currentFolderId);
+                    }
+                    
+                    showNotification('链接更新成功');
+                }
+            }
+            
+            // 关闭模态框
+            document.getElementById('edit-modal').classList.add('hidden');
+            document.getElementById('edit-modal').classList.remove('flex');
+        });
+        
+        // 确认删除（只有管理员可以执行）
+        document.getElementById('confirm-delete').addEventListener('click', () => {
+            if (currentUser.loggedIn && currentUser.role === 'admin') {
+                const type = document.getElementById('delete-type').value;
+                const id = document.getElementById('delete-id').value;
+                
+                if (type === 'folder') {
+                    // 删除文件夹前检查是否有内容
+                    const documents = JSON.parse(localStorage.getItem('knowledgeDocuments_v10') || '[]');
+                    const links = JSON.parse(localStorage.getItem('knowledgeLinks_v10') || '[]');
+                    
+                    const hasDocuments = documents.some(doc => doc.folderId === id);
+                    const hasLinks = links.some(link => link.folderId === id);
+                    
+                    if (hasDocuments || hasLinks) {
+                        showNotification('无法删除包含内容的文件夹，请先移走其中的项目', false);
+                        return;
+                    }
+                    
+                    // 删除文件夹
+                    let folders = JSON.parse(localStorage.getItem('knowledgeFolders_v10') || '[]');
+                    folders = folders.filter(f => f.id !== id);
+                    localStorage.setItem('knowledgeFolders_v10', JSON.stringify(folders));
+                    
+                    // 重新加载文件夹
+                    loadFoldersFromStorage();
+                    updateFolderCounts();
+                    
+                    // 如果正在查看被删除的文件夹，返回列表
+                    if (currentFolderId === id) {
+                        currentFolderId = null;
+                        document.getElementById('current-folder').classList.add('hidden');
+                        document.getElementById('documents').classList.remove('hidden');
+                        document.getElementById('links').classList.remove('hidden');
+                        document.getElementById('folders').classList.remove('hidden');
+                    }
+                    
+                    showNotification('文件夹已删除');
+                } else if (type === 'document') {
+                    // 删除文档
+                    let documents = JSON.parse(localStorage.getItem('knowledgeDocuments_v10') || '[]');
+                    documents = documents.filter(doc => doc.id !== id);
+                    localStorage.setItem('knowledgeDocuments_v10', JSON.stringify(documents));
+                    
+                    // 重新加载数据
+                    loadDocumentsFromStorage();
+                    updateDocumentCount();
+                    if (currentFolderId) {
+                        loadFolderContent(currentFolderId);
+                    }
+                    
+                    showNotification('文档已删除');
+                } else if (type === 'link') {
+                    // 删除链接
+                    let links = JSON.parse(localStorage.getItem('knowledgeLinks_v10') || '[]');
+                    links = links.filter(link => link.id !== id);
+                    localStorage.setItem('knowledgeLinks_v10', JSON.stringify(links));
+                    
+                    // 重新加载数据
+                    loadLinksFromStorage();
+                    updateLinkCount();
+                    if (currentFolderId) {
+                        loadFolderContent(currentFolderId);
+                    }
+                    
+                    showNotification('链接已删除');
+                }
+                
+                // 关闭模态框
+                document.getElementById('delete-confirm-modal').classList.add('hidden');
+                document.getElementById('delete-confirm-modal').classList.remove('flex');
+            }
+        });
+        
+        // 取消编辑
+        document.getElementById('cancel-edit').addEventListener('click', () => {
+            document.getElementById('edit-modal').classList.add('hidden');
+            document.getElementById('edit-modal').classList.remove('flex');
+        });
+        
+        // 点击编辑模态框外部关闭
+        document.getElementById('edit-modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('edit-modal')) {
+                document.getElementById('edit-modal').classList.add('hidden');
+                document.getElementById('edit-modal').classList.remove('flex');
+            }
+        });
+        
+        // 取消删除
+        document.getElementById('cancel-delete').addEventListener('click', () => {
+            document.getElementById('delete-confirm-modal').classList.add('hidden');
+            document.getElementById('delete-confirm-modal').classList.remove('flex');
+        });
+        
+        // 点击删除模态框外部关闭
+        document.getElementById('delete-confirm-modal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('delete-confirm-modal')) {
+                document.getElementById('delete-confirm-modal').classList.add('hidden');
+                document.getElementById('delete-confirm-modal').classList.remove('flex');
+            }
+        });
+        
+        // 模态框控制 - 添加文档和链接
+        const documentModal = document.getElementById('document-modal');
+        const linkModal = document.getElementById('link-modal');
+        
+        document.getElementById('add-document-btn').addEventListener('click', () => {
+            if (currentUser.loggedIn) {
+                // 加载文件夹选项
+                loadFolderOptions('doc-folder');
+                
+                documentModal.classList.remove('hidden');
+                documentModal.classList.add('flex');
+                resetDocumentForm();
+            } else {
+                showNotification('请先登录以获取添加权限', false);
+            }
+        });
+        
+        document.getElementById('add-link-btn').addEventListener('click', () => {
+            if (currentUser.loggedIn) {
+                // 加载文件夹选项
+                loadFolderOptions('link-folder');
+                
+                linkModal.classList.remove('hidden');
+                linkModal.classList.add('flex');
+                resetLinkForm();
+            } else {
+                showNotification('请先登录以获取添加权限', false);
+            }
+        });
+        
+        // 文档类型改变时自动选择推荐文件夹
+        document.getElementById('doc-type').addEventListener('change', (e) => {
+            const selectedType = e.target.value;
+            const recommendedFolder = docTypeIcons[selectedType].folder;
+            
+            // 查找推荐的文件夹并选中
+            const folderSelect = document.getElementById('doc-folder');
+            for (let i = 0; i < folderSelect.options.length; i++) {
+                if (folderSelect.options[i].text === recommendedFolder) {
+                    folderSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        });
+        
+        // 链接分类改变时自动选择推荐文件夹
+        document.getElementById('link-category').addEventListener('change', (e) => {
+            const selectedCategory = e.target.value;
+            const recommendedFolder = linkCategoryIcons[selectedCategory].folder;
+            
+            // 查找推荐的文件夹并选中
+            const folderSelect = document.getElementById('link-folder');
+            for (let i = 0; i < folderSelect.options.length; i++) {
+                if (folderSelect.options[i].text === recommendedFolder) {
+                    folderSelect.selectedIndex = i;
+                    break;
+                }
+            }
+        });
+        
+        document.getElementById('cancel-doc').addEventListener('click', () => {
+            documentModal.classList.add('hidden');
+            documentModal.classList.remove('flex');
+            resetDocumentForm();
+        });
+        
+        document.getElementById('cancel-link').addEventListener('click', () => {
+            linkModal.classList.add('hidden');
+            linkModal.classList.remove('flex');
+            resetLinkForm();
+        });
+        
+        // 点击模态框外部关闭
+        documentModal.addEventListener('click', (e) => {
+            if (e.target === documentModal) {
+                documentModal.classList.add('hidden');
+                documentModal.classList.remove('flex');
+                resetDocumentForm();
+            }
+        });
+        
+        linkModal.addEventListener('click', (e) => {
+            if (e.target === linkModal) {
+                linkModal.classList.add('hidden');
+                linkModal.classList.remove('flex');
+                resetLinkForm();
+            }
+        });
+        
+        // 重置表单
+        function resetDocumentForm() {
+            document.getElementById('doc-title').value = '';
+            document.getElementById('doc-desc').value = '';
+            document.getElementById('doc-type').selectedIndex = 0;
+            document.getElementById('doc-file').value = '';
+        }
+        
+        function resetLinkForm() {
+            document.getElementById('link-title').value = '';
+            document.getElementById('link-desc').value = '';
+            document.getElementById('link-url').value = '';
+            document.getElementById('link-category').selectedIndex = 0;
+        }
+        
+        // 生成唯一ID
+        function generateId() {
+            return 'id_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+        }
+        
+        // 保存新文档
+        document.getElementById('save-doc').addEventListener('click', () => {
+            if (!currentUser.loggedIn) return;
+            
+            const title = document.getElementById('doc-title').value.trim();
+            const desc = document.getElementById('doc-desc').value.trim();
+            const type = document.getElementById('doc-type').value;
+            const folderId = document.getElementById('doc-folder').value;
+            const fileInput = document.getElementById('doc-file');
+            
+            if (!title || !desc || !fileInput.files.length || !folderId) {
+                showNotification('请填写所有必填字段', false);
+                return;
+            }
+            
+            // 获取文件信息
+            const file = fileInput.files[0];
+            const fileName = file.name;
+            const fileExtension = fileName.split('.').pop().toLowerCase();
+            
+            // 确定文档类型和扩展名
+            let docExtension = type === 'other' ? fileExtension : type;
+            const formattedTitle = title.endsWith(`.${docExtension}`) ? title : `${title}.${docExtension}`;
+            
+            // 创建新文档
+            const newDocument = {
+                id: generateId(),
+                title: formattedTitle,
+                description: desc,
+                type: type,
+                folderId: folderId,
+                creator: currentUser.username,
+                date: new Date().toISOString()
+            };
+            
+            // 保存到本地存储
+            const documents = JSON.parse(localStorage.getItem('knowledgeDocuments_v10') || '[]');
+            documents.push(newDocument);
+            localStorage.setItem('knowledgeDocuments_v10', JSON.stringify(documents));
+            
+            // 重新加载文档
+            loadDocumentsFromStorage();
+            updateDocumentCount();
+            
+            // 如果正在查看目标文件夹，更新内容
+            if (currentFolderId === folderId) {
+                loadFolderContent(currentFolderId);
+            }
+            
+            // 关闭模态框并重置表单
+            documentModal.classList.add('hidden');
+            documentModal.classList.remove('flex');
+            resetDocumentForm();
+            
+            showNotification('文档添加成功');
+        });
+        
+        // 保存新链接
+        document.getElementById('save-link').addEventListener('click', () => {
+            if (!currentUser.loggedIn) return;
+            
+            const title = document.getElementById('link-title').value.trim();
+            const desc = document.getElementById('link-desc').value.trim();
+            const url = document.getElementById('link-url').value.trim();
+            const category = document.getElementById('link-category').value;
+            const folderId = document.getElementById('link-folder').value;
+            
+            if (!title || !desc || !url || !folderId) {
+                showNotification('请填写所有必填字段', false);
+                return;
+            }
+            
+            // 确保URL以http://或https://开头
+            const formattedUrl = url.startsWith('http://') || url.startsWith('https://') 
+                ? url 
+                : 'https://' + url;
+            
+            // 创建新链接
+            const newLink = {
+                id: generateId(),
+                title: title,
+                description: desc,
+                url: formattedUrl,
+                category: category,
+                folderId: folderId,
+                creator: currentUser.username,
+                date: new Date().toISOString()
+            };
+            
+            // 保存到本地存储
+            const links = JSON.parse(localStorage.getItem('knowledgeLinks_v10') || '[]');
+            links.push(newLink);
+            localStorage.setItem('knowledgeLinks_v10', JSON.stringify(links));
+            
+            // 重新加载链接
+            loadLinksFromStorage();
+            updateLinkCount();
+            
+            // 如果正在查看目标文件夹，更新内容
+            if (currentFolderId === folderId) {
+                loadFolderContent(currentFolderId);
+            }
+            
+            // 关闭模态框并重置表单
+            linkModal.classList.add('hidden');
+            linkModal.classList.remove('flex');
+            resetLinkForm();
+            
+            showNotification('链接添加成功');
+        });
+        
+        // 更新所有计数
+        function updateAllCounts() {
+            updateFolderCounts();
+            updateDocumentCount();
+            updateLinkCount();
+        }
+        
+        // 更新文件夹计数
+        function updateFolderCounts() {
+            const folderCount = JSON.parse(localStorage.getItem('knowledgeFolders_v10') || '[]').length;
+            document.getElementById('folder-count').textContent = `${folderCount} 个文件夹`;
+        }
+        
+        // 更新文档计数
+        function updateDocumentCount() {
+            const documentCount = JSON.parse(localStorage.getItem('knowledgeDocuments_v10') || '[]').length;
+            document.getElementById('document-count').textContent = `${documentCount} 个文档`;
+        }
+        
+        // 更新链接计数
+        function updateLinkCount() {
+            const linkCount = JSON.parse(localStorage.getItem('knowledgeLinks_v10') || '[]').length;
+            document.getElementById('link-count').textContent = `${linkCount} 个链接`;
+        }
+        
+        // 加载文件夹选项到下拉菜单
+        function loadFolderOptions(selectId, excludeItemId = null, itemType = null) {
+            const folderSelect = document.getElementById(selectId);
+            folderSelect.innerHTML = ''; // 清空现有选项
+            
+            const folders = JSON.parse(localStorage.getItem('knowledgeFolders_v10') || '[]');
+            
+            // 添加默认选项
+            const defaultOption = document.createElement('option');
+            defaultOption.value = '';
+            defaultOption.textContent = '请选择文件夹';
+            defaultOption.disabled = true;
+            defaultOption.selected = true;
+            folderSelect.appendChild(defaultOption);
+            
+            // 添加文件夹选项
+            folders.forEach(folder => {
+                // 如果是移动操作，排除当前所在文件夹
+                if (excludeItemId && itemType) {
+                    let currentFolderId = null;
+                    
+                    if (itemType === 'document') {
+                        const documents = JSON.parse(localStorage.getItem('knowledgeDocuments_v10') || '[]');
+                        const doc = documents.find(d => d.id === excludeItemId);
+                        currentFolderId = doc ? doc.folderId : null;
+                    } else if (itemType === 'link') {
+                        const links = JSON.parse(localStorage.getItem('knowledgeLinks_v10') || '[]');
+                        const link = links.find(l => l.id === excludeItemId);
+                        currentFolderId = link ? link.folderId : null;
+                    }
+                    
+                    if (folder.id === currentFolderId) {
+                        return; // 跳过当前文件夹
+                    }
+                }
+                
+                const option = document.createElement('option');
+                option.value = folder.id;
+                option.textContent = folder.name;
+                folderSelect.appendChild(option);
+            });
+        }
+        
+        // 创建文档卡片
+        function createDocumentCard(doc) {
+            const iconInfo = docTypeIcons[doc.type] || docTypeIcons['other'];
+            
+            // 格式化日期
+            const dateObj = new Date(doc.date);
+            const formattedDate = dateObj.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).replace(/\//g, '-');
+            
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-lg shadow p-6 card-hover document-card';
+            card.dataset.id = doc.id;
+            card.dataset.creator = doc.creator;
+            card.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center">
+                        <i class="fa ${iconInfo.icon} ${iconInfo.color} text-2xl mr-3"></i>
+                        <h4 class="text-lg font-semibold" data-field="title">${doc.title}</h4>
+                    </div>
+                    <div class="flex space-x-2 admin-actions hidden">
+                        <button class="edit-btn text-gray-500 hover:text-primary transition-colors" title="编辑">
+                            <i class="fa fa-pencil"></i>
+                        </button>
+                        <button class="move-btn text-gray-500 hover:text-blue-500 transition-colors" title="移动">
+                            <i class="fa fa-arrows"></i>
+                        </button>
+                        <button class="delete-btn text-gray-500 hover:text-red-500 transition-colors" title="删除">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                        <button class="copy-btn text-gray-500 hover:text-primary transition-colors" title="复制文档名称">
+                            <i class="fa fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="flex space-x-2 member-actions hidden">
+                        <button class="edit-btn text-gray-500 hover:text-primary transition-colors" title="编辑">
+                            <i class="fa fa-pencil"></i>
+                        </button>
+                        <button class="move-btn text-gray-500 hover:text-blue-500 transition-colors" title="移动">
+                            <i class="fa fa-arrows"></i>
+                        </button>
+                        <button class="copy-btn text-gray-500 hover:text-primary transition-colors" title="复制文档名称">
+                            <i class="fa fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="flex space-x-2 visitor-actions">
+                        <button class="copy-btn text-gray-500 hover:text-primary transition-colors" title="复制文档名称">
+                            <i class="fa fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <p class="text-gray-600 mb-4" data-field="description">${doc.description}</p>
+                <div class="flex justify-between items-center">
+                    <span class="text-sm text-gray-500">上传于 ${formattedDate} ${doc.creator !== 'admin' ? '(会员贡献)' : ''}</span>
+                    <a href="#" class="text-primary hover:underline flex items-center">
+                        下载 <i class="fa fa-download ml-1"></i>
+                    </a>
+                </div>
+            `;
+            
+            return card;
+        }
+        
+        // 创建链接卡片
+        function createLinkCard(link) {
+            const iconInfo = linkCategoryIcons[link.category] || linkCategoryIcons['other'];
+            
+            // 格式化日期
+            const dateObj = new Date(link.date);
+            const formattedDate = dateObj.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }).replace(/\//g, '-');
+            
+            const card = document.createElement('div');
+            card.className = 'bg-white rounded-lg shadow p-6 card-hover link-card';
+            card.dataset.id = link.id;
+            card.dataset.creator = link.creator;
+            card.innerHTML = `
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center">
+                        <i class="fa ${iconInfo.icon} ${iconInfo.color} text-2xl mr-3"></i>
+                        <h4 class="text-lg font-semibold" data-field="title">${link.title}</h4>
+                    </div>
+                    <div class="flex space-x-2 admin-actions hidden">
+                        <button class="edit-btn text-gray-500 hover:text-primary transition-colors" title="编辑">
+                            <i class="fa fa-pencil"></i>
+                        </button>
+                        <button class="move-btn text-gray-500 hover:text-blue-500 transition-colors" title="移动">
+                            <i class="fa fa-arrows"></i>
+                        </button>
+                        <button class="delete-btn text-gray-500 hover:text-red-500 transition-colors" title="删除">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                        <button class="copy-btn text-gray-500 hover:text-primary transition-colors" title="复制链接">
+                            <i class="fa fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="flex space-x-2 member-actions hidden">
+                        <button class="edit-btn text-gray-500 hover:text-primary transition-colors" title="编辑">
+                            <i class="fa fa-pencil"></i>
+                        </button>
+                        <button class="move-btn text-gray-500 hover:text-blue-500 transition-colors" title="移动">
+                            <i class="fa fa-arrows"></i>
+                        </button>
+                        <button class="copy-btn text-gray-500 hover:text-primary transition-colors" title="复制链接">
+                            <i class="fa fa-copy"></i>
+                        </button>
+                    </div>
+                    <div class="flex space-x-2 visitor-actions">
+                        <button class="copy-btn text-gray-500 hover:text-primary transition-colors" title="复制链接">
+                            <i class="fa fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                <p class="text-gray-600 mb-2" data-field="description">${link.description}</p>
+                <a href="${link.url}" target="_blank" class="text-primary hover:underline text-sm break-all link-url" data-field="url">${link.url}</a>
+                <div class="mt-4 text-sm text-gray-500">最后更新: ${formattedDate} ${link.creator !== 'admin' ? '(会员贡献)' : ''}</div>
+            `;
+            
+            return card;
+        }
+        
+        // 从存储加载文件夹
+        function loadFoldersFromStorage() {
+            const foldersContainer = document.getElementById('folders-container');
+            foldersContainer.innerHTML = '';
+            
+            const folders = JSON.parse(localStorage.getItem('knowledgeFolders_v10') || '[]');
+            
+            // 按创建时间排序
+            folders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            folders.forEach(folder => {
+                // 计算文件夹中的项目数
+                const documents = JSON.parse(localStorage.getItem('knowledgeDocuments_v10') || '[]');
+                const links = JSON.parse(localStorage.getItem('knowledgeLinks_v10') || '[]');
+                
+                const docCount = documents.filter(doc => doc.folderId === folder.id).length;
+                const linkCount = links.filter(link => link.folderId === folder.id).length;
+                const totalItems = docCount + linkCount;
+                
+                const folderCard = document.createElement('div');
+                folderCard.className = 'bg-white rounded-lg shadow-sm p-4 folder-hover folder-card';
+                folderCard.dataset.id = folder.id;
+                folderCard.dataset.creator = folder.creator;
+                
+                // 系统文件夹不能删除
+                const isSystemFolder = folder.creator === 'system';
+                
+                folderCard.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div class="flex items-center">
+                            <i class="fa ${folderTypeIcons[folder.type].icon} ${folderTypeIcons[folder.type].color} text-xl mr-2"></i>
+                            <h4 class="font-medium truncate" data-field="name">${folder.name}</h4>
+                        </div>
+                        <div class="flex space-x-1 admin-actions hidden ${isSystemFolder ? 'hidden' : ''}">
+                            <button class="edit-btn text-gray-500 hover:text-primary transition-colors text-sm" title="编辑">
+                                <i class="fa fa-pencil"></i>
+                            </button>
+                            <button class="delete-btn text-gray-500 hover:text-red-500 transition-colors text-sm" title="删除">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
+                        <div class="flex space-x-1 member-actions hidden ${folder.creator !== currentUser.username ? 'hidden' : ''}">
+                            <button class="edit-btn text-gray-500 hover:text-primary transition-colors text-sm" title="编辑">
+                                <i class="fa fa-pencil"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2 truncate">${folder.description || '无描述'}</p>
+                    <div class="text-xs text-gray-400 mt-2">
+                        ${totalItems} 个项目 (${docCount} 文档, ${linkCount} 链接)
+                    </div>
+                `;
+                
+                foldersContainer.appendChild(folderCard);
+            });
+        }
+        
+        // 从存储加载文档
+        function loadDocumentsFromStorage() {
+            const documentsContainer = document.getElementById('documents-container');
+            documentsContainer.innerHTML = '';
+            
+            const documents = JSON.parse(localStorage.getItem('knowledgeDocuments_v10') || '[]');
+            
+            // 按日期排序（最新的在前）
+            documents.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            documents.forEach(doc => {
+                const card = createDocumentCard(doc);
+                documentsContainer.appendChild(card);
+            });
+        }
+        
+        // 从存储加载链接
+        function loadLinksFromStorage() {
+            const linksContainer = document.getElementById('links-container');
+            linksContainer.innerHTML = '';
+            
+            const links = JSON.parse(localStorage.getItem('knowledgeLinks_v10') || '[]');
+            
+            // 按日期排序（最新的在前）
+            links.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            links.forEach(link => {
+                const card = createLinkCard(link);
+                linksContainer.appendChild(card);
+            });
+        }
+        
+        // 平滑滚动
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                const targetId = this.getAttribute('href');
+                const targetElement = document.querySelector(targetId);
+                
+                if (targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                    
+                    // 关闭移动菜单（如果打开）
+                    if (!mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+    
